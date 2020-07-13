@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Configures recording schedule translates times into UTC from origin TZ based on DDB entries
+
+Parameters:
+    ScheduleTableName:
+        Type: String
+    RadioStationTableName:
+        Type: String
+    QueueName:
+        Type: String
+
+Resources:
+  StreamripperSchedulerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: streamripper_scheduler/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Timeout: 120
+      Environment:
+        Variables:
+          STREAMRIPPER_QUEUE_ARN: !Ref QueueName
+          SCHEDULE_TABLE_NAME: !Ref ScheduleTableName
+          RADIO_STATION_DETAILS_TABLE_NAME: !Ref RadioStationTableName
+      Events:
+        StreamripperScheduler:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              !Ref ScheduleTableName
+        - DynamoDBReadPolicy:
+            TableName:
+              !Ref RadioStationTableName
+        - StreamRipperEventsPolicy:
+            Type: 'AWS::IAM::Policy'
+            Properties:
+              PolicyName: StreamRipperEventsPolicy
+              PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - events:PutEvents
+                      - events:CreatePartnerEventSource
+                      - events:EnableRule
+                      - events:CreateEventBus
+                      - events:DeactivateEventSource
+                      - events:ActivateEventSource
+                      - events:DeletePartnerEventSource
+                      - events:PutPermission
+                      - events:DeleteRule
+                      - events:PutTargets
+                      - events:PutPartnerEvents
+                      - events:DeleteEventBus
+                      - events:RemovePermission
+                      - events:RemoveTargets
+                      - events:DisableRule"
+                    Resource: '*'
+
+
+
+Outputs:
+  StreamripperSchedulerFunction:
+    Description: "StreamripperScheduler Function ARN"
+    Value: !GetAtt StreamripperSchedulerFunction.Arn
+  StreamripperSchedulerFunctionIamRole:
+    Description: "Implicit IAM Role created for StreamripperScheduler function"
+    Value: !GetAtt StreamripperSchedulerFunction.Arn
