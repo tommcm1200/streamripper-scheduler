@@ -36,33 +36,7 @@ Resources:
         - DynamoDBReadPolicy:
             TableName:
               !Ref RadioStationTableName
-        - StreamRipperEventsPolicy:
-            Type: 'AWS::IAM::Policy'
-            Properties:
-              PolicyName: StreamRipperEventsPolicy
-              PolicyDocument:
-                Version: 2012-10-17
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - events:PutEvents
-                      - events:CreatePartnerEventSource
-                      - events:EnableRule
-                      - events:CreateEventBus
-                      - events:DeactivateEventSource
-                      - events:ActivateEventSource
-                      - events:DeletePartnerEventSource
-                      - events:PutPermission
-                      - events:DeleteRule
-                      - events:PutTargets
-                      - events:PutPartnerEvents
-                      - events:DeleteEventBus
-                      - events:RemovePermission
-                      - events:RemoveTargets
-                      - events:DisableRule"
-                    Resource: '*'
-
-
+        - AmazonEventBridgeFullAccess
 
 Outputs:
   StreamripperSchedulerFunction:
